@@ -21,6 +21,8 @@ public class PaymentController {
         payments.put(2L, new Payment(2L, 149.50));
         payments.put(3L, new Payment(3L, 250.00));
         payments.put(4L, new Payment(4L, 19.99));
+        // Compilation  error to test actions
+        payments.put();
     }
 
     @GetMapping("/{id}")
