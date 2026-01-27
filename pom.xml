@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>simple-http-server</module>
+        <module>payment-service-app</module>
     </modules>
 
     <properties>
