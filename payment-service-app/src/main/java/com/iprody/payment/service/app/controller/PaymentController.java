@@ -1,35 +1,30 @@
 package com.iprody.payment.service.app.controller;
 
-import com.iprody.payment.service.app.payment.Payment;
+import com.iprody.payment.service.app.persistence.entity.Payment;
+import com.iprody.payment.service.app.service.PaymentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/payments")
+@RequiredArgsConstructor
 public class PaymentController {
-    private final Map<Long, Payment> payments = new HashMap<>();
 
-    public PaymentController() {
-        payments.put(1L, new Payment(1L, 99.99));
-        payments.put(2L, new Payment(2L, 149.50));
-        payments.put(3L, new Payment(3L, 250.00));
-        payments.put(4L, new Payment(4L, 19.99));
-    }
+    private final PaymentService paymentService;
 
     @GetMapping("/{id}")
-    public Payment getPayment(@PathVariable Long id) {
-        return payments.get(id);
+    public Payment getPayment(@PathVariable UUID id) {
+        return paymentService.getPaymentById(id);
     }
 
     @GetMapping
     public List<Payment> getAllPayments() {
-        return new ArrayList<>(payments.values());
+        return paymentService.getAllPayments();
     }
 }
