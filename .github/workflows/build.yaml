@@ -20,35 +20,22 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Unset Docker overrides
-        run: |
-          unset DOCKER_HOST DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_CONTEXT || true
-          echo "DOCKER_HOST=${DOCKER_HOST:-<unset>}"
-
-      - name: Docker sanity check
-        run: |
-          docker version
-          docker info
-
-      - name: Compile with Maven
-        run: mvn -B clean compile
-
       - name: Docker diagnostics
         run: |
           echo "DOCKER_HOST=${DOCKER_HOST:-<unset>}"
           echo "DOCKER_CONTEXT=${DOCKER_CONTEXT:-<unset>}"
           env | sort | grep -E '^DOCKER|^TESTCONTAINERS' || true
+          docker version
+          docker info
+          ls -la /var/run/docker.sock
 
-          which docker || true
-          docker version || true
-          docker info || true
-
-          ls -la /var/run/docker.sock || true
+      - name: Compile with Maven
+        run: mvn -B clean compile
 
       - name: Run tests
         env:
-          TESTCONTAINERS_RYUK_DISABLED: "false"
-          TESTCONTAINERS_REUSE_ENABLE: "false"
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
         run: mvn -B test
 
       - name: Run Checkstyle for payment-service-app
