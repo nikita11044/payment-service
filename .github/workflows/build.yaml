@@ -33,6 +33,18 @@ jobs:
       - name: Compile with Maven
         run: mvn -B clean compile
 
+      - name: Docker diagnostics
+        run: |
+          echo "DOCKER_HOST=${DOCKER_HOST:-<unset>}"
+          echo "DOCKER_CONTEXT=${DOCKER_CONTEXT:-<unset>}"
+          env | sort | grep -E '^DOCKER|^TESTCONTAINERS' || true
+
+          which docker || true
+          docker version || true
+          docker info || true
+
+          ls -la /var/run/docker.sock || true
+
       - name: Run tests
         env:
           TESTCONTAINERS_RYUK_DISABLED: "false"
