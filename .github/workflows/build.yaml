@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - 'main'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,11 +18,25 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
+
+      - name: Unset Docker overrides
+        run: |
+          unset DOCKER_HOST DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_CONTEXT || true
+          echo "DOCKER_HOST=${DOCKER_HOST:-<unset>}"
+
+      - name: Docker sanity check
+        run: |
+          docker version
+          docker info
 
       - name: Compile with Maven
         run: mvn -B clean compile
 
       - name: Run tests
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "false"
+          TESTCONTAINERS_REUSE_ENABLE: "false"
         run: mvn -B test
 
       - name: Run Checkstyle for payment-service-app
