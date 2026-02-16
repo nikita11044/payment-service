@@ -20,22 +20,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Docker diagnostics
-        run: |
-          echo "DOCKER_HOST=${DOCKER_HOST:-<unset>}"
-          echo "DOCKER_CONTEXT=${DOCKER_CONTEXT:-<unset>}"
-          env | sort | grep -E '^DOCKER|^TESTCONTAINERS' || true
-          docker version
-          docker info
-          ls -la /var/run/docker.sock
-
       - name: Compile with Maven
         run: mvn -B clean compile
 
       - name: Run tests
-        env:
-          DOCKER_HOST: unix:///var/run/docker.sock
-          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
         run: mvn -B test
 
       - name: Run Checkstyle for payment-service-app
