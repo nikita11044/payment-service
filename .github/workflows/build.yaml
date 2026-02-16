@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - 'main'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,6 +18,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
 
       - name: Compile with Maven
         run: mvn -B clean compile
