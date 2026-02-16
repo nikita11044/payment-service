@@ -2,7 +2,6 @@ package com.iprody.payment.service.app.persistence;
 
 import com.iprody.payment.service.app.persistence.entity.Payment;
 import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
-import org.apache.commons.collections4.queue.PredicatedQueue;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
