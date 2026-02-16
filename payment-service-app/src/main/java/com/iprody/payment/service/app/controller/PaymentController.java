@@ -1,7 +1,7 @@
 package com.iprody.payment.service.app.controller;
 
+import com.iprody.payment.service.app.dto.PaymentDto;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
-import com.iprody.payment.service.app.persistence.entity.Payment;
 import com.iprody.payment.service.app.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,12 +25,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @GetMapping("/{id}")
-    public Payment getPayment(@PathVariable UUID id) {
-        return paymentService.getPaymentById(id);
+    public PaymentDto getPayment(@PathVariable UUID id) {
+        return paymentService.get(id);
     }
 
     @GetMapping("/search")
-    public Page<Payment> searchPayments(
+    public Page<PaymentDto> searchPayments(
         @ModelAttribute PaymentFilter filter,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "25") int size,
@@ -42,6 +42,6 @@ public class PaymentController {
             : Sort.by(sortBy).ascending();
 
         final Pageable pageable = PageRequest.of(page, size, sort);
-        return paymentService.searchPaged(filter, pageable);
+        return paymentService.search(filter, pageable);
     }
 }
