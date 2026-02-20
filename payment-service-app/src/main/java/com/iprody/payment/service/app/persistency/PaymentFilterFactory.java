@@ -11,24 +11,32 @@ public final class PaymentFilterFactory {
     public static Specification<Payment> fromFilter(PaymentFilter filter) {
         Specification<Payment> spec = Specification.unrestricted();
 
-        if (StringUtils.hasText(filter.getCurrency())) {
-            spec = spec.and(PaymentSpecifications.hasCurrency(filter.getCurrency()));
+        if (StringUtils.hasText(filter.currency())) {
+            spec = spec.and(PaymentSpecifications.hasCurrency(filter.currency()));
         }
 
-        if (filter.getMinAmount() != null && filter.getMaxAmount() != null) {
-            spec = spec.and(PaymentSpecifications.amountBetween(
-                    filter.getMinAmount(), filter.getMaxAmount()
-            ));
+        if (filter.minAmount() != null) {
+            spec = spec.and(PaymentSpecifications.amountGreater(
+                    filter.minAmount()));
         }
 
-        if (filter.getCreatedAfter() != null && filter.getCreatedBefore() != null) {
-            spec = spec.and(PaymentSpecifications.createdBetween(
-                    filter.getCreatedAfter(), filter.getCreatedBefore()
-            ));
+        if (filter.maxAmount() != null) {
+            spec = spec.and(PaymentSpecifications.amountLess(
+                    filter.maxAmount()));
         }
 
-        if (filter.getStatus() != null) {
-            spec = spec.and(PaymentSpecifications.hasStatus(filter.getStatus()));
+        if (filter.createdAfter() != null) {
+            spec = spec.and(PaymentSpecifications.createdGreater(
+                    filter.createdAfter()));
+        }
+
+        if (filter.createdBefore() != null) {
+            spec = spec.and(PaymentSpecifications.createdLess(
+                    filter.createdBefore()));
+        }
+
+        if (filter.status() != null) {
+            spec = spec.and(PaymentSpecifications.hasStatus(filter.status()));
         }
 
         return spec;
