@@ -1,6 +1,7 @@
 package com.iprody.payment.service.app.dto;
 
 import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,6 +9,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
+@Builder
 public class PaymentDto {
     private UUID guid;
     private UUID inquiryRefId;
