@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -68,7 +71,9 @@ class PaymentServiceTest {
         payment.setInquiryRefId(UUID.randomUUID());
         payment.setAmount(new BigDecimal("100.00"));
         payment.setCurrency("USD");
+        payment.setTransactionRefId(UUID.randomUUID());
         payment.setStatus(PaymentStatus.APPROVED);
+        payment.setNote("initial note");
         payment.setCreatedAt(Instant.parse("2025-01-10T10:15:30Z"));
         payment.setUpdatedAt(Instant.parse("2025-01-10T10:15:31Z"));
 
@@ -76,6 +81,7 @@ class PaymentServiceTest {
                 .guid(payment.getGuid())
                 .currency(payment.getCurrency())
                 .status(payment.getStatus())
+                .note(payment.getNote())
                 .build();
     }
 
@@ -107,7 +113,7 @@ class PaymentServiceTest {
             assertThrows(EntityNotFoundException.class, () -> paymentService.get(guid));
 
         // then
-        assertEquals("Payment not found", ex.getMessage());
+        assertEquals("Payment not found for id: " + guid, ex.getMessage());
         verify(paymentRepository).findById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
@@ -287,5 +293,218 @@ class PaymentServiceTest {
             verify(paymentMapper).toDto(payment);
             verifyNoMoreInteractions(paymentRepository, paymentMapper);
         }
+    }
+
+    @SuppressWarnings("checkstyle:Indentation")
+    @Test
+    void create_shouldSaveAndReturnDto() {
+        // given
+        final PaymentDto input = PaymentDto.builder()
+            .inquiryRefId(UUID.randomUUID())
+            .amount(new BigDecimal("10.00"))
+            .currency("USD")
+            .transactionRefId(UUID.randomUUID())
+            .status(PaymentStatus.PENDING)
+            .note("new payment")
+            .build();
+
+        final Payment entityToSave = new Payment();
+        final Payment savedEntity = new Payment();
+        savedEntity.setGuid(guid);
+
+        final PaymentDto outDto = PaymentDto.builder()
+            .guid(guid)
+            .currency("USD")
+            .status(PaymentStatus.PENDING)
+            .build();
+
+        when(paymentMapper.toEntity(input)).thenReturn(entityToSave);
+        when(paymentRepository.save(entityToSave)).thenReturn(savedEntity);
+        when(paymentMapper.toDto(savedEntity)).thenReturn(outDto);
+
+        // when
+        final PaymentDto result = paymentService.create(input);
+
+        // then
+        assertEquals(guid, result.getGuid());
+        verify(paymentMapper).toEntity(input);
+        verify(paymentRepository).save(entityToSave);
+        verify(paymentMapper).toDto(savedEntity);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void update_shouldThrowIllegalArgumentException_whenMissing() {
+        // given
+        when(paymentRepository.existsById(guid)).thenReturn(false);
+
+        // when
+        final IllegalArgumentException ex =
+            assertThrows(IllegalArgumentException.class, () -> paymentService.update(guid, paymentDto));
+
+        // then
+        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        verify(paymentRepository).existsById(guid);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void update_shouldSaveWithGuidAndReturnDto_whenExists() {
+        // given
+        when(paymentRepository.existsById(guid)).thenReturn(true);
+
+        final Payment mappedEntity = new Payment();
+        final Payment savedEntity = new Payment();
+        savedEntity.setGuid(guid);
+
+        final PaymentDto out = PaymentDto.builder()
+            .guid(guid)
+            .currency("USD")
+            .status(PaymentStatus.APPROVED)
+            .build();
+
+        when(paymentMapper.toEntity(paymentDto)).thenReturn(mappedEntity);
+
+        final ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+        when(paymentRepository.save(captor.capture())).thenReturn(savedEntity);
+        when(paymentMapper.toDto(savedEntity)).thenReturn(out);
+
+        // when
+        final PaymentDto result = paymentService.update(guid, paymentDto);
+
+        // then
+        assertEquals(guid, result.getGuid());
+
+        final Payment argToSave = captor.getValue();
+        assertEquals(guid, argToSave.getGuid(), "Service must set guid before save");
+
+        verify(paymentRepository).existsById(guid);
+        verify(paymentMapper).toEntity(paymentDto);
+        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentMapper).toDto(savedEntity);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void updateStatus_shouldUpdateAndReturnDto() {
+        // given
+        when(paymentRepository.findById(guid)).thenReturn(Optional.of(payment));
+
+        final PaymentDto out = PaymentDto.builder()
+            .guid(guid)
+            .currency(payment.getCurrency())
+            .status(PaymentStatus.DECLINED)
+            .build();
+
+        final ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+        when(paymentRepository.save(captor.capture())).thenReturn(payment);
+        when(paymentMapper.toDto(payment)).thenReturn(out);
+
+        // when
+        final PaymentDto result = paymentService.updateStatus(guid, PaymentStatus.DECLINED);
+
+        // then
+        assertEquals(PaymentStatus.DECLINED, result.getStatus());
+        assertEquals(PaymentStatus.DECLINED, captor.getValue().getStatus());
+
+        verify(paymentRepository).findById(guid);
+        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentMapper).toDto(payment);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void updateStatus_shouldThrowEntityNotFoundException_whenMissing() {
+        // given
+        when(paymentRepository.findById(guid)).thenReturn(Optional.empty());
+
+        // when
+        final EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> paymentService.updateStatus(guid, PaymentStatus.APPROVED)
+        );
+
+        // then
+        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        verify(paymentRepository).findById(guid);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void updateNote_shouldUpdateAndReturnDto() {
+        // given
+        when(paymentRepository.findById(guid)).thenReturn(Optional.of(payment));
+
+        final String newNote = "updated note";
+        final PaymentDto out = PaymentDto.builder()
+            .guid(guid)
+            .currency(payment.getCurrency())
+            .status(payment.getStatus())
+            .note(newNote)
+            .build();
+
+        final ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+        when(paymentRepository.save(captor.capture())).thenReturn(payment);
+        when(paymentMapper.toDto(payment)).thenReturn(out);
+
+        // when
+        final PaymentDto result = paymentService.updateNote(guid, newNote);
+
+        // then
+        assertEquals(newNote, result.getNote());
+        assertEquals(newNote, captor.getValue().getNote());
+
+        verify(paymentRepository).findById(guid);
+        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentMapper).toDto(payment);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void updateNote_shouldThrowEntityNotFoundException_whenMissing() {
+        // given
+        when(paymentRepository.findById(guid)).thenReturn(Optional.empty());
+
+        // when
+        final EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> paymentService.updateNote(guid, "note")
+        );
+
+        // then
+        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        verify(paymentRepository).findById(guid);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    // -------------------- DELETE --------------------
+
+    @Test
+    void delete_shouldDelete_whenExists() {
+        // given
+        when(paymentRepository.existsById(guid)).thenReturn(true);
+
+        // when
+        paymentService.delete(guid);
+
+        // then
+        verify(paymentRepository).existsById(guid);
+        verify(paymentRepository).deleteById(guid);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+    }
+
+    @Test
+    void delete_shouldThrowEntityNotFoundException_whenMissing() {
+        // given
+        when(paymentRepository.existsById(guid)).thenReturn(false);
+
+        // when
+        final EntityNotFoundException ex =
+            assertThrows(EntityNotFoundException.class, () -> paymentService.delete(guid));
+
+        // then
+        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        verify(paymentRepository).existsById(guid);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
 }
