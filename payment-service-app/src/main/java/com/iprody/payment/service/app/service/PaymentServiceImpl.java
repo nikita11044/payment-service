@@ -4,6 +4,7 @@ import com.iprody.payment.service.app.dto.PaymentDto;
 import com.iprody.payment.service.app.mapper.PaymentMapper;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.persistence.entity.Payment;
+import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
 import com.iprody.payment.service.app.persistency.PaymentFilterFactory;
 import com.iprody.payment.service.app.persistency.PaymentRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,16 +22,69 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
 
+    @Override
+    public PaymentDto create(PaymentDto dto) {
+        final Payment entity = paymentMapper.toEntity(dto);
+        final Payment saved = paymentRepository.save(entity);
+        return paymentMapper.toDto(saved);
+    }
+
+    @Override
     public PaymentDto get(UUID id) {
         return paymentRepository.findById(id)
                 .map(paymentMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Payment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found for id: " + id));
 
     }
 
+    @Override
     public Page<PaymentDto> search(PaymentFilter filter, Pageable pageable) {
         final Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
         return paymentRepository.findAll(spec, pageable).map(paymentMapper::toDto);
+    }
+
+    @Override
+    public PaymentDto update(UUID id, PaymentDto dto) {
+        if (!paymentRepository.existsById(id)) {
+            throw new IllegalArgumentException("Payment not found for id: " + id);
+        }
+
+        final Payment updated = paymentMapper.toEntity(dto);
+        updated.setGuid(id);
+
+        final Payment saved = paymentRepository.save(updated);
+        return paymentMapper.toDto(saved);
+    }
+
+    @Override
+    public PaymentDto updateStatus(UUID id, PaymentStatus status) {
+        final Payment payment = paymentRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Payment not found for id: " + id));
+
+        payment.setStatus(status);
+
+        final Payment saved = paymentRepository.save(payment);
+        return paymentMapper.toDto(saved);
+    }
+
+    @Override
+    public PaymentDto updateNote(UUID id, String note) {
+        final Payment payment = paymentRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Payment not found for id: " + id));
+
+        payment.setNote(note);
+
+        final Payment saved = paymentRepository.save(payment);
+        return paymentMapper.toDto(saved);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        if (!paymentRepository.existsById(id)) {
+            throw new EntityNotFoundException("Payment not found for id: " + id);
+        }
+
+        paymentRepository.deleteById(id);
     }
 }
 
