@@ -1,13 +1,14 @@
 package com.iprody.payment.service.app.service;
 
 import com.iprody.payment.service.app.dto.PaymentDto;
+import com.iprody.payment.service.app.exception.EntityNotFoundException;
+import com.iprody.payment.service.app.exception.Operation;
 import com.iprody.payment.service.app.mapper.PaymentMapper;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.persistence.entity.Payment;
 import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
 import com.iprody.payment.service.app.persistency.PaymentFilterFactory;
 import com.iprody.payment.service.app.persistency.PaymentRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -113,7 +114,9 @@ class PaymentServiceTest {
             assertThrows(EntityNotFoundException.class, () -> paymentService.get(guid));
 
         // then
-        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        assertEquals("Payment not found for given id", ex.getMessage());
+        assertEquals(Operation.FIND_BY_ID_OP, ex.getOperation());
+        assertEquals(guid, ex.getEntityId());
         verify(paymentRepository).findById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
@@ -334,16 +337,18 @@ class PaymentServiceTest {
     }
 
     @Test
-    void update_shouldThrowIllegalArgumentException_whenMissing() {
+    void update_shouldThrowEntityNotFoundException_whenMissing() {
         // given
         when(paymentRepository.existsById(guid)).thenReturn(false);
 
         // when
-        final IllegalArgumentException ex =
-            assertThrows(IllegalArgumentException.class, () -> paymentService.update(guid, paymentDto));
+        final EntityNotFoundException ex =
+            assertThrows(EntityNotFoundException.class, () -> paymentService.update(guid, paymentDto));
 
         // then
-        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        assertEquals("Payment not found for given id", ex.getMessage());
+        assertEquals(Operation.UPDATE_OP, ex.getOperation());
+        assertEquals(guid, ex.getEntityId());
         verify(paymentRepository).existsById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
@@ -425,7 +430,9 @@ class PaymentServiceTest {
         );
 
         // then
-        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        assertEquals("Payment not found for given id", ex.getMessage());
+        assertEquals(Operation.UPDATE_OP, ex.getOperation());
+        assertEquals(guid, ex.getEntityId());
         verify(paymentRepository).findById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
@@ -472,7 +479,9 @@ class PaymentServiceTest {
         );
 
         // then
-        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        assertEquals("Payment not found for given id", ex.getMessage());
+        assertEquals(Operation.UPDATE_OP, ex.getOperation());
+        assertEquals(guid, ex.getEntityId());
         verify(paymentRepository).findById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
@@ -503,7 +512,9 @@ class PaymentServiceTest {
             assertThrows(EntityNotFoundException.class, () -> paymentService.delete(guid));
 
         // then
-        assertEquals("Payment not found for id: " + guid, ex.getMessage());
+        assertEquals("Payment not found for given id", ex.getMessage());
+        assertEquals(Operation.DELETE_OP, ex.getOperation());
+        assertEquals(guid, ex.getEntityId());
         verify(paymentRepository).existsById(guid);
         verifyNoMoreInteractions(paymentRepository, paymentMapper);
     }
