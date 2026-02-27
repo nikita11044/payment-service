@@ -36,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(paymentMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Payment not found for given id",
-                        Operation.UPDATE_OP,
+                        Operation.FIND_BY_ID_OP,
                         id
                 ));
 
@@ -92,7 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (!paymentRepository.existsById(id)) {
             throw new EntityNotFoundException(
                     "Payment not found for given id",
-                    Operation.UPDATE_OP,
+                    Operation.DELETE_OP,
                     id
             );
         }
