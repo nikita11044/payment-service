@@ -5,4 +5,5 @@ spring:
   application:
     name: payment-service
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:/db/changelog/db.test-changelog-master.yaml
