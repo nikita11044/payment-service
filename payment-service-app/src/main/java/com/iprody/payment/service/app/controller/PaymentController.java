@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -35,12 +36,14 @@ public class PaymentController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('admin', 'reader')")
     public PaymentDto getPayment(@PathVariable UUID id) {
         return paymentService.get(id);
     }
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('admin', 'reader')")
     public Page<PaymentDto> searchPayments(
         @ModelAttribute PaymentFilter filter,
         @RequestParam(defaultValue = "0") int page,
@@ -58,17 +61,20 @@ public class PaymentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto createPayment(@RequestBody PaymentDto dto) {
         return paymentService.create(dto);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto updatePayment(@PathVariable UUID id, @RequestBody PaymentDto dto) {
         return paymentService.update(id, dto);
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto updateStatus(
         @PathVariable UUID id,
         @RequestBody @Valid PaymentStatusUpdateDto dto
@@ -77,6 +83,7 @@ public class PaymentController {
     }
 
     @PatchMapping("/{id}/note")
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto updateStatus(
         @PathVariable UUID id,
         @RequestBody @Valid PaymentNoteUpdateDto dto
@@ -86,6 +93,7 @@ public class PaymentController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('admin')")
     public void deletePayment(@PathVariable UUID id) {
         paymentService.delete(id);
     }
