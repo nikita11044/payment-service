@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-insert-payments
+      author: iskorostinskiinikita
+      changes:
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "00000000-0000-0000-0000-000000000001" }
+              - column: { name: inquiry_ref_id, value: "10000000-0000-0000-0000-000000000001" }
+              - column: { name: amount, valueNumeric: 99.99 }
+              - column: { name: currency, value: "USD" }
+              - column: { name: transaction_ref_id, value: "20000000-0000-0000-0000-000000000001" }
+              - column: { name: status, value: "RECEIVED" }
+              - column: { name: note, value: "Test payment 1" }
+              - column: { name: created_at, value: "2025-01-01T10:00:00Z" }
+              - column: { name: updated_at, value: "2025-01-01T10:00:00Z" }
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "00000000-0000-0000-0000-000000000002" }
+              - column: { name: inquiry_ref_id, value: "10000000-0000-0000-0000-000000000002" }
+              - column: { name: amount, valueNumeric: 50.00 }
+              - column: { name: currency, value: "EUR" }
+              - column: { name: transaction_ref_id, value: "20000000-0000-0000-0000-000000000002" }
+              - column: { name: status, value: "APPROVED" }
+              - column: { name: note, value: "Test payment 2" }
+              - column: { name: created_at, value: "2025-01-02T10:00:00Z" }
+              - column: { name: updated_at, value: "2025-01-02T10:00:00Z" }
+        - insert:
+            tableName: payment
+            columns:
+              - column: { name: guid, value: "00000000-0000-0000-0000-000000000003" }
+              - column: { name: inquiry_ref_id, value: "10000000-0000-0000-0000-000000000003" }
+              - column: { name: amount, valueNumeric: 10.50 }
+              - column: { name: currency, value: "CZK" }
+              - column: { name: transaction_ref_id, value: "20000000-0000-0000-0000-000000000003" }
+              - column: { name: status, value: "DECLINED" }
+              - column: { name: note, value: "Test payment 3" }
+              - column: { name: created_at, value: "2025-01-03T10:00:00Z" }
+              - column: { name: updated_at, value: "2025-01-03T10:00:00Z" }
