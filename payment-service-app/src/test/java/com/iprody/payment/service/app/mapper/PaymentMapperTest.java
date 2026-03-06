@@ -18,13 +18,14 @@ class PaymentMapperTest {
         // given
         final UUID id = UUID.randomUUID();
         final Payment payment = new Payment();
+        final Instant now = Instant.parse("2026-03-03T10:00:00Z");
         payment.setGuid(id);
         payment.setAmount(new BigDecimal("123.45"));
         payment.setCurrency("USD");
         payment.setInquiryRefId(UUID.randomUUID());
         payment.setStatus(PaymentStatus.APPROVED);
-        payment.setCreatedAt(Instant.now());
-        payment.setUpdatedAt(Instant.now());
+        payment.setCreatedAt(now);
+        payment.setUpdatedAt(now);
 
         // when
         final PaymentDto dto = mapper.toDto(payment);
@@ -44,7 +45,7 @@ class PaymentMapperTest {
     void shouldMapToEntity() {
         // given
         final UUID id = UUID.randomUUID();
-        final Instant now = Instant.now();
+        final Instant now = Instant.parse("2026-03-03T10:00:00Z");
         final PaymentDto dto = PaymentDto.builder()
             .guid(id)
             .amount(new BigDecimal("123.45"))
