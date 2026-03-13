@@ -7,24 +7,16 @@ import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.UUID;
 
 @RestController
@@ -32,13 +24,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PaymentController {
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
+
     private final PaymentService paymentService;
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('admin', 'reader')")
     public PaymentDto getPayment(@PathVariable UUID id) {
-        return paymentService.get(id);
+        log.info("GET payment by id: {}", id);
+
+        final PaymentDto dto = paymentService.get(id);
+
+        log.debug("Sending response PaymentDto: {}", dto);
+        return dto;
     }
 
     @GetMapping("/search")
@@ -51,26 +50,42 @@ public class PaymentController {
         @RequestParam(defaultValue = "updatedAt") String sortBy,
         @RequestParam(defaultValue = "desc") String direction
     ) {
+        log.info("SEARCH payments with filter: {}", filter);
+
         final Sort sort = direction.equalsIgnoreCase("desc")
             ? Sort.by(sortBy).descending()
             : Sort.by(sortBy).ascending();
 
         final Pageable pageable = PageRequest.of(page, size, sort);
-        return paymentService.search(filter, pageable);
+
+        final Page<PaymentDto> result = paymentService.search(filter, pageable);
+
+        log.debug("Sending response Page<PaymentDto>: {}", result);
+        return result;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('admin')")
     public PaymentDto createPayment(@RequestBody PaymentDto dto) {
-        return paymentService.create(dto);
+        log.info("CREATE payment");
+
+        final PaymentDto result = paymentService.create(dto);
+
+        log.debug("Sending response PaymentDto: {}", result);
+        return result;
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('admin')")
     public PaymentDto updatePayment(@PathVariable UUID id, @RequestBody PaymentDto dto) {
-        return paymentService.update(id, dto);
+        log.info("UPDATE payment by id: {}", id);
+
+        final PaymentDto result = paymentService.update(id, dto);
+
+        log.debug("Sending response PaymentDto: {}", result);
+        return result;
     }
 
     @PatchMapping("/{id}/status")
@@ -79,22 +94,36 @@ public class PaymentController {
         @PathVariable UUID id,
         @RequestBody @Valid PaymentStatusUpdateDto dto
     ) {
-        return paymentService.updateStatus(id, dto.getStatus());
+        log.info("UPDATE payment status by id: {}", id);
+
+        final PaymentDto result = paymentService.updateStatus(id, dto.getStatus());
+
+        log.debug("Sending response PaymentDto: {}", result);
+        return result;
     }
 
     @PatchMapping("/{id}/note")
     @PreAuthorize("hasRole('admin')")
-    public PaymentDto updateStatus(
+    public PaymentDto updateNote(
         @PathVariable UUID id,
         @RequestBody @Valid PaymentNoteUpdateDto dto
     ) {
-        return paymentService.updateNote(id, dto.getNote());
+        log.info("UPDATE payment note by id: {}", id);
+
+        final PaymentDto result = paymentService.updateNote(id, dto.getNote());
+
+        log.debug("Sending response PaymentDto: {}", result);
+        return result;
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('admin')")
     public void deletePayment(@PathVariable UUID id) {
+        log.info("DELETE payment by id: {}", id);
+
         paymentService.delete(id);
+
+        log.debug("Payment deleted: {}", id);
     }
 }
