@@ -1,9 +1,12 @@
 package com.iprody.payment.service.app.service;
 
+import com.iprody.payment.service.app.async.AsyncSender;
+import com.iprody.payment.service.app.async.XPaymentAdapterRequestMessage;
 import com.iprody.payment.service.app.dto.PaymentDto;
 import com.iprody.payment.service.app.exception.EntityNotFoundException;
 import com.iprody.payment.service.app.exception.Operation;
 import com.iprody.payment.service.app.mapper.PaymentMapper;
+import com.iprody.payment.service.app.mapper.XPaymentAdapterMapper;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.persistence.entity.Payment;
 import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
@@ -55,6 +58,12 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentMapper paymentMapper;
+
+    @Mock
+    private XPaymentAdapterMapper xPaymentAdapterMapper;
+
+    @Mock
+    private AsyncSender<XPaymentAdapterRequestMessage> sender;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -321,9 +330,12 @@ class PaymentServiceTest {
             .status(PaymentStatus.PENDING)
             .build();
 
+        final XPaymentAdapterRequestMessage requestMessage = new XPaymentAdapterRequestMessage();
+
         when(paymentMapper.toEntity(input)).thenReturn(entityToSave);
         when(paymentRepository.save(entityToSave)).thenReturn(savedEntity);
         when(paymentMapper.toDto(savedEntity)).thenReturn(outDto);
+        when(xPaymentAdapterMapper.toXPaymentAdapterRequestMessage(entityToSave)).thenReturn(requestMessage);
 
         // when
         final PaymentDto result = paymentService.create(input);
@@ -333,7 +345,9 @@ class PaymentServiceTest {
         verify(paymentMapper).toEntity(input);
         verify(paymentRepository).save(entityToSave);
         verify(paymentMapper).toDto(savedEntity);
-        verifyNoMoreInteractions(paymentRepository, paymentMapper);
+        verify(xPaymentAdapterMapper).toXPaymentAdapterRequestMessage(entityToSave);
+        verify(sender).send(requestMessage);
+        verifyNoMoreInteractions(paymentRepository, paymentMapper, xPaymentAdapterMapper, sender);
     }
 
     @Test
