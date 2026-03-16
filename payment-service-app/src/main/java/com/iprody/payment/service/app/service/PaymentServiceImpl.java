@@ -1,9 +1,12 @@
 package com.iprody.payment.service.app.service;
 
+import com.iprody.payment.service.app.async.AsyncSender;
+import com.iprody.payment.service.app.async.XPaymentAdapterRequestMessage;
 import com.iprody.payment.service.app.dto.PaymentDto;
 import com.iprody.payment.service.app.exception.EntityNotFoundException;
 import com.iprody.payment.service.app.exception.Operation;
 import com.iprody.payment.service.app.mapper.PaymentMapper;
+import com.iprody.payment.service.app.mapper.XPaymentAdapterMapper;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.persistence.entity.Payment;
 import com.iprody.payment.service.app.persistence.entity.PaymentStatus;
@@ -22,12 +25,20 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
+    private final XPaymentAdapterMapper xPaymentAdapterMapper;
+    private final AsyncSender<XPaymentAdapterRequestMessage> sender;
 
     @Override
     public PaymentDto create(PaymentDto dto) {
         final Payment entity = paymentMapper.toEntity(dto);
         final Payment saved = paymentRepository.save(entity);
-        return paymentMapper.toDto(saved);
+        final PaymentDto resultDto = paymentMapper.toDto(saved);
+
+        final XPaymentAdapterRequestMessage requestMessage = xPaymentAdapterMapper
+            .toXPaymentAdapterRequestMessage(entity);
+        sender.send(requestMessage);
+
+        return resultDto;
     }
 
     @Override
@@ -39,7 +50,6 @@ public class PaymentServiceImpl implements PaymentService {
                         Operation.FIND_BY_ID_OP,
                         id
                 ));
-
     }
 
     @Override
@@ -68,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentDto updateStatus(UUID id, PaymentStatus status) {
         final Payment payment = paymentRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException( "Payment not found for given id", Operation.UPDATE_OP, id));
+            .orElseThrow(() -> new EntityNotFoundException("Payment not found for given id", Operation.UPDATE_OP, id));
 
         payment.setStatus(status);
 
