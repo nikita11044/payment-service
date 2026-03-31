@@ -77,6 +77,17 @@
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.6.3</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -98,6 +109,7 @@
                             <output>${project.build.directory}/generated-sources/openapi</output>
                             <apiPackage>com.iprody.xpayment.app.api.client</apiPackage>
                             <modelPackage>com.iprody.xpayment.app.api.model</modelPackage>
+                            <invokerPackage>com.iprody.xpayment.app.api</invokerPackage>
 
                             <configOptions>
                                 <useTags>true</useTags>
@@ -115,6 +127,11 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.6.3</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
