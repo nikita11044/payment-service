@@ -10,6 +10,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
     consumer:
       group-id: xpayment-adapter-result-consumers
@@ -32,6 +34,7 @@ app:
       xpayment-adapter:
         request: xpayment-adapter.requests
         response: xpayment-adapter.responses
+        response-dlt: xpayment-adapter.responses.dlt
   x-payment-api:
     client:
       url: http://localhost:8083
