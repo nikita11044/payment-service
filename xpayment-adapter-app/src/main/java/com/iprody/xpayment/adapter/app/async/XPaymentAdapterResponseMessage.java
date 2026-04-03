@@ -1,7 +1,7 @@
 package com.iprody.xpayment.adapter.app.async;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@Builder
 public class XPaymentAdapterResponseMessage implements Message {
 
     private UUID messageId;

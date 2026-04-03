@@ -1,39 +1,76 @@
 package com.iprody.xpayment.adapter.app.async;
 
-import jakarta.annotation.PreDestroy;
+import com.iprody.xpayment.adapter.app.api.XPaymentProviderGateway;
+import com.iprody.xpayment.adapter.app.dto.ChargeRequestDto;
+import com.iprody.xpayment.adapter.app.dto.ChargeResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 
 import java.time.Instant;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 public class RequestMessageHandler implements MessageHandler<XPaymentAdapterRequestMessage> {
 
-    private final AsyncSender<XPaymentAdapterResponseMessage> sender;
+    private static final Logger logger = LoggerFactory.getLogger(RequestMessageHandler.class);
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final XPaymentProviderGateway xPaymentProviderGateway;
+    private final AsyncSender<XPaymentAdapterResponseMessage> asyncSender;
 
     @Override
     public void handle(XPaymentAdapterRequestMessage message) {
-        scheduler.schedule(() -> {
-            final XPaymentAdapterResponseMessage responseMessage = new XPaymentAdapterResponseMessage();
-            responseMessage.setPaymentGuid(message.getMessageId());
-            responseMessage.setAmount(message.getAmount());
-            responseMessage.setCurrency(message.getCurrency());
-            responseMessage.setStatus(XPaymentAdapterStatus.SUCCEEDED);
-            responseMessage.setTransactionRefId(UUID.randomUUID());
-            responseMessage.setOccurredAt(Instant.now());
-            sender.send(responseMessage);
-        }, 10, TimeUnit.SECONDS);
-    }
+        logger.info(
+            "Payment request received paymentGuid - {}, amount - {}, currency - {}",
+            message.getPaymentId(),
+            message.getAmount(),
+            message.getCurrency()
+        );
 
-    @PreDestroy
-    public void shutdown() {
-        scheduler.shutdown();
+        final ChargeRequestDto dto = ChargeRequestDto.builder()
+            .amount(message.getAmount())
+            .currency(message.getCurrency())
+            .order(message.getPaymentId())
+            .build();
+
+        try {
+            final ChargeResponseDto chargeResponseDto =
+                xPaymentProviderGateway.createCharge(dto);
+
+            logger.info(
+                "Payment request with paymentGuid - {} is sent for payment processing. Current status - {}",
+                chargeResponseDto.order(),
+                chargeResponseDto.status()
+            );
+
+            final XPaymentAdapterResponseMessage responseMessage = XPaymentAdapterResponseMessage.builder()
+                .paymentGuid(chargeResponseDto.order())
+                .transactionRefId(chargeResponseDto.id())
+                .amount(chargeResponseDto.amount())
+                .currency(chargeResponseDto.currency())
+                .status(XPaymentAdapterStatus.valueOf(chargeResponseDto.status()))
+                .occurredAt(Instant.now())
+                .build();
+
+            asyncSender.send(responseMessage);
+
+        } catch (RestClientException ex) {
+            logger.error(
+                "Error in time of sending payment request with paymentGuid - {}",
+                message.getPaymentId(), ex
+            );
+
+            final XPaymentAdapterResponseMessage responseMessage = XPaymentAdapterResponseMessage.builder()
+                .paymentGuid(message.getPaymentId())
+                .amount(message.getAmount())
+                .currency(message.getCurrency())
+                .status(XPaymentAdapterStatus.CANCELED)
+                .occurredAt(Instant.now())
+                .build();
+
+            asyncSender.send(responseMessage);
+        }
     }
 }
