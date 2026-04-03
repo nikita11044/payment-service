@@ -28,6 +28,12 @@ spring:
       ack-mode: manual
       concurrency: 1
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+
 app:
   kafka:
     topics:
@@ -41,6 +47,11 @@ app:
       username: paymentAgentIprody
       password: iprodyTestPassword0123
       account: paymentAgentIprodyApiToken
+  rabbitmq:
+    exchange-name: payment-state-check-exchange
+    queue-name: payment-state-check-queue
+    max-retries: 60
+    interval-ms: 60000
 
 logging:
   level:
