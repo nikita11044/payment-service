@@ -34,7 +34,7 @@ app:
       xpayment-adapter:
         request: xpayment-adapter.requests
         response: xpayment-adapter.responses
-        response-dlt: xpayment-adapter.responses.dlt
+        request-dlt: xpayment-adapter.requests.dlt
   x-payment-api:
     client:
       url: http://localhost:8083

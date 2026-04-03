@@ -8,7 +8,6 @@ import com.iprody.xpayment.adapter.app.mapper.ChargeResponseMapper;
 import com.iprody.xpayment.app.api.client.DefaultApi;
 import com.iprody.xpayment.app.api.model.ChargeResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
