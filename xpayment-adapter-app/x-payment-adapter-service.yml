@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: x-payment-adapter-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: x-payment-adapter-app
+  template:
+    metadata:
+      labels:
+        app: x-payment-adapter-app
+    spec:
+      containers:
+        - name: x-payment-adapter-app
+          image: x-payment-adapter-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka.kafka.svc.cluster.local:9092"
+            - name: SPRING_KAFKA_CONSUMER_GROUP_ID
+              value: "xpayment-adapter-result-consumers"
+            - name: APP_KAFKA_TOPIC_REQUEST
+              value: "xpayment-adapter.requests"
+            - name: APP_KAFKA_TOPIC_RESPONSE
+              value: "xpayment-adapter.responses"
+            - name: RABBITMQ_URL
+              value: "amqp://rabbitmq.rabbitmq.svc.cluster.local:5672"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: x-payment-adapter-app
+spec:
+  selector:
+    app: x-payment-adapter-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
