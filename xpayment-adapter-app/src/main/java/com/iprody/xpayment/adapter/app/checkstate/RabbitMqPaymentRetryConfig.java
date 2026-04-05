@@ -1,5 +1,7 @@
 package com.iprody.xpayment.adapter.app.checkstate;
 
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.CustomExchange;
@@ -44,5 +46,10 @@ public class RabbitMqPaymentRetryConfig {
             .to(delayedExchange)
             .with(queueName)
             .noargs();
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new JacksonJsonMessageConverter();
     }
 }

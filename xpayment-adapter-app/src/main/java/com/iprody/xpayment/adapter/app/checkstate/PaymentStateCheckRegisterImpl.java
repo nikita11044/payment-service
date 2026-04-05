@@ -22,7 +22,7 @@ public class PaymentStateCheckRegisterImpl implements PaymentStateCheckRegister 
 
     public PaymentStateCheckRegisterImpl(
         RabbitTemplate rabbitTemplate,
-        @Value("${app.rabbitmq.delayed-exchange-name}") String exchangeName,
+        @Value("${app.rabbitmq.exchange-name}") String exchangeName,
         @Value("${app.rabbitmq.queue-name}") String routingKey) {
         this.rabbitTemplate = rabbitTemplate;
         this.exchangeName = exchangeName;

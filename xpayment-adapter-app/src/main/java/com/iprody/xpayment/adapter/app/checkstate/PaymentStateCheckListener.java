@@ -26,7 +26,7 @@ public class PaymentStateCheckListener {
 
     public PaymentStateCheckListener(
         RabbitTemplate rabbitTemplate,
-        @Value("${app.rabbitmq.delayed-exchange-name}") String exchangeName,
+        @Value("${app.rabbitmq.exchange-name}") String exchangeName,
         @Value("${app.rabbitmq.queue-name}") String routingKey,
         @Value("${app.rabbitmq.dlx-exchange-name}") String dlxExchangeName,
         @Value("${app.rabbitmq.dlx-routing-key}") String dlxRoutingKey,

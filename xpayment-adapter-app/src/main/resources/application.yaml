@@ -50,6 +50,8 @@ app:
   rabbitmq:
     exchange-name: payment-state-check-exchange
     queue-name: payment-state-check-queue
+    dlx-exchange-name: payment-state-check-dlx-exchange
+    dlx-routing-key: payment-state-check-dlx
     max-retries: 60
     interval-ms: 60000
 
