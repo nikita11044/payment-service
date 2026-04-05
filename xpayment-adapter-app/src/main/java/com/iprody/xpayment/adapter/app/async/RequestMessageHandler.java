@@ -1,6 +1,7 @@
 package com.iprody.xpayment.adapter.app.async;
 
 import com.iprody.xpayment.adapter.app.api.XPaymentProviderGateway;
+import com.iprody.xpayment.adapter.app.checkstate.PaymentStateCheckRegister;
 import com.iprody.xpayment.adapter.app.dto.ChargeRequestDto;
 import com.iprody.xpayment.adapter.app.dto.ChargeResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class RequestMessageHandler implements MessageHandler<XPaymentAdapterRequ
 
     private final XPaymentProviderGateway xPaymentProviderGateway;
     private final AsyncSender<XPaymentAdapterResponseMessage> asyncSender;
+    private final PaymentStateCheckRegister paymentStateCheckRegister;
 
     @Override
     public void handle(XPaymentAdapterRequestMessage message) {
@@ -55,6 +57,12 @@ public class RequestMessageHandler implements MessageHandler<XPaymentAdapterRequ
                 .build();
 
             asyncSender.send(responseMessage);
+            paymentStateCheckRegister.register(
+                chargeResponseDto.id(),
+                chargeResponseDto.order(),
+                chargeResponseDto.amount(),
+                chargeResponseDto.currency()
+            );
 
         } catch (RestClientException ex) {
             logger.error(
