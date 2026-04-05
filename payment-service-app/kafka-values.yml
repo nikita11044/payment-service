@@ -1,0 +1,9 @@
+kraft:
+  enabled: true
+controller:
+  replicaCount: 1
+broker:
+  replicaCount: 1
+listeners:
+  client:
+    protocol: PLAINTEXT

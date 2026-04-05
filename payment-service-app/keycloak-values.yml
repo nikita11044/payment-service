@@ -1,0 +1,25 @@
+image:
+  registry: quay.io
+  repository: keycloak/keycloak
+  tag: 24.0.3
+extraEnvVars:
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+command:
+  - start-dev
+  - --http-port=8080
+  - --import-realm
+  - --log-level=DEBUG
+service:
+  ports:
+    http: 8085
+extraVolumes:
+  - name: realm-import
+    configMap:
+      name: keycloak-realm
+extraVolumeMounts:
+  - name: realm-import
+    mountPath: /opt/keycloak/data/import/realm-export.json
+    subPath: realm-export.json
