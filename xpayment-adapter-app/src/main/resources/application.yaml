@@ -27,6 +27,10 @@ spring:
     listener:
       ack-mode: manual
       concurrency: 1
+      observation-enabled: true
+
+    template:
+      observation-enabled: true
 
   rabbitmq:
     host: localhost
@@ -63,6 +67,14 @@ logging:
     org.springframework.security: INFO
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    export:
+      zipkin:
+        endpoint: http://zipkin:9411/api/v2/spans
+    propagation:
+      type: w3c,b3
   endpoints:
     web:
       exposure:
