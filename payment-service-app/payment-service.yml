@@ -30,6 +30,8 @@ spec:
               value: kafka.kafka.svc.cluster.local:9092
             - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
               value: http://keycloak.keycloak.svc.cluster.local:8080/realms/iprody-lms
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: http://zipkin.observability.svc.cluster.local:9411/api/v2/spans
 ---
 apiVersion: v1
 kind: Service

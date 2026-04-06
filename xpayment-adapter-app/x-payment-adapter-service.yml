@@ -29,6 +29,8 @@ spec:
               value: "xpayment-adapter.responses"
             - name: RABBITMQ_URL
               value: "amqp://rabbitmq.rabbitmq.svc.cluster.local:5672"
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              value: http://zipkin.observability.svc.cluster.local:9411/api/v2/spans
 ---
 apiVersion: v1
 kind: Service
